@@ -1,0 +1,16 @@
+tcp_enabled: true
+tcp_host: '0.0.0.0'
+tcp_port: 37
+
+udp_enabled: true
+udp_host: '0.0.0.0'
+udp_port: 37
+
+logging:
+  stdout:
+    level: 'INFO'
+    format: 'plain'
+  file:
+    level: 'INFO'
+    format: 'plain'
+    dir: '/var/log/'
