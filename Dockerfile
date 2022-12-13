@@ -1,43 +1,33 @@
-FROM alpine:3.4
+FROM golang:1.19-alpine AS build_base
+
+RUN apk add --no-cache git
+
+WORKDIR /tmp/go-sample-app
+
+COPY . .
+
+RUN go get && go build
+
+FROM alpine:3
 
 ARG BUILD_DATE
 ARG BUILD_VCS_REF
-ARG BUILD_VERSION
 
-ARG TCP_ENABLED
-ARG UDP_ENABLED
-ARG LOG_LEVEL
-ARG LOG_FORMAT
-
-ENV TCP_ENABLED=${TCP_ENABLED:-true}
-ENV UDP_ENABLED=${UDP_ENABLED:-true}
-ENV LOG_LEVEL=${LOG_LEVEL:-INFO}
-ENV LOG_FORMAT=${LOG_FORMAT:-plain}
-
-
-LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.vcs-url="https://github.com/elpadrinoIV/tod_server.git" \
-      org.label-schema.vcs-ref=$BUILD_VCS_REF \
-      org.label-schema.version=$BUILD_VERSION \
-      com.microscaling.license=GPL-3.0
-
+ENV TCP_ENABLED=true
+ENV UDP_ENABLED=true
+ENV LOG_LEVEL=INFO
+ENV LOG_FORMAT=plain
 
 ADD docker /app
 
-ENV GOROOT=/usr/lib/go \
-    GOPATH=/gopath \
-    GOBIN=/gopath/bin \
-    PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-
-WORKDIR /gopath/src/app
-ADD . /gopath/src/app
-
-RUN apk add --no-cache git go g++ && \
-  go get && \
-  go build && \
-  cp app /app/tod_server && \
-  apk del git go g++ && \
-  rm -rf /gopath
+COPY --from=build_base /tmp/go-sample-app/tod_server /app/tod_server
 
 WORKDIR /app
+
 ENTRYPOINT ["/app/init.sh"]
+
+LABEL org.opencontainers.image.vendor="appleJuiceNETZ" \
+      org.opencontainers.image.url="https://applejuicenet.cc" \
+      org.opencontainers.image.created=${BUILD_DATE} \
+      org.opencontainers.image.revision=${BUILD_VCS_REF} \
+      org.opencontainers.image.source="https://github.com/applejuicenetz/tod_server"
